@@ -37,13 +37,9 @@
         timeX()
 
 
-
-
-        // let setIntervalX = setInterval(updateCoordinates, 50)
+        ////////////////////////////////////////////////////////拖动效果////////////////////////////////////////////////////////////////
+        //拖动效果初始化
         setTimeout(dragEffect, 500)
-
-
-        //////////////////////////////////////////////////////////// 拖动效果////////////////////////////////////////////////////////////////
         function dragEffect() {
             const draggableElements = document.querySelectorAll('.draggableElement');
             let localStorageKeys = Object.keys(localStorage);
@@ -53,95 +49,47 @@
                 let offsetX, offsetY;
                 let isDragging = false;
 
-                draggableElement.addEventListener('mousedown', (e) => {
+
+                //实现每次加载，覆盖的效果
+                draggableElement.onmousedown = function (e) {
                     isDragging = true;
                     offsetX = e.clientX - draggableElement.getBoundingClientRect().left;
                     offsetY = e.clientY - draggableElement.getBoundingClientRect().top;
+                    console.log('手的位置', offsetX, offsetY);
                     draggableElement.style.cursor = 'grabbing';
-                    clearInterval(time)
-                });
+                    // clearInterval(time)
+                };
 
-                document.addEventListener('mousemove', (e) => {
+                draggableElement.onmousemove = function (e) {
+                    console.log('yidong');
                     if (!isDragging) return;
                     const x = e.clientX - offsetX;
                     const y = e.clientY - offsetY;
-                    // draggableElement.style.left = x + 'px';
-                    // draggableElement.style.top = y + 'px';
+                    console.log(x, y);
+                    draggableElement.style.left = x + 'px';
+                    draggableElement.style.top = y + 'px';
+                    //修改位置
+                    modifyCoordinates(draggableElement)
+                };
 
-
-                    // for (let j = 0; j < localStorageKeys.length; j++) {
-                    //     const key = localStorageKeys[j]
-                    //     if (draggableElement.id.replace('draggableElement-', '') === key) {
-                    //         draggableElement.style.left = loadData(key).boxX + loadData(key).vpX - windowCoordinates().x + 'px';
-                    //         draggableElement.style.top = loadData(key).boxY + loadData(key).vpY - windowCoordinates().y + 'px';
-                    //         // draggableElement.style.left = loadData(key).boxX - windowCoordinates().x - loadData(key).vpX - + 'px';
-                    //         // draggableElement.style.top = loadData(key).boxY - windowCoordinates().y - loadData(key).vpY - + 'px';
-                    //     }
-                    // }
-
-
-                });
-
-                document.addEventListener('mouseup', () => {
+                draggableElement.onmouseup = function (e) {
+                    console.log('释放');
                     isDragging = false;
                     draggableElement.style.cursor = 'grab';
                     updateCoordinates()
-                    timeX()
-                     //修改位置
-                     modifyCoordinates(draggableElement)
-                });
+                    // timeX()
+
+                };
+
+
 
             }
 
         }
 
-        // dragEffect()
-
-
-
-
-        //////////////////////////////////////////////////////////////获取盒子在屏幕视口的位置////////////////////////////////////////////////////////////
-
-
-        function locationInformationStorage(k, box) {
-            const rect = box.getBoundingClientRect();
-
-            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
-            const screenY = window.screenY || window.screenTop || 0;
-
-            const absoluteX = rect.left + screenX;
-            const absoluteY = rect.top + screenY;
-
-            return { vpX: absoluteX, vpY: absoluteY, boxX: rect.left, boxY: rect.top }
-        }
-
-        //修改local存储位置信息
-        function modifyCoordinates(draggableElement) {
-            const rect = draggableElement.getBoundingClientRect();
-
-            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
-            const screenY = window.screenY || window.screenTop || 0;
-
-            const absoluteX = rect.left + screenX;
-            const absoluteY = rect.top + screenY;
-
-            const x1 = draggableElement.id + ''
-            const key = x1.replace('draggableElement-', '')
-            saveData(key, {
-                vpX: absoluteX,
-                vpY: absoluteY,
-                boxX: rect.left,
-                boxY: rect.top
-            })
-        }
-
-
-
-
 
 
         ////////////////////////////////////////////////////////////// 页面数据存储////////////////////////////////////////////////////////////
-        // function labelDataStorage() {
         // 生成一个唯一的标识符
         function generateUniqueId() {
             return 'id-' + Math.random().toString(36).substr(2, 16);
@@ -191,15 +139,67 @@
 
 
 
-        //初始化位置
-        // setTimeout(() => {
-        //     const draggableElement = document.querySelector(`#draggableElement-data-${tabId}`);
+
+        //////////////////////////////////////////////////////////////位置信息////////////////////////////////////////////////////////////
+
+        function position() {
+
+        }
+
+        function locationInformationStorage(k, box) {
+            const rect = box.getBoundingClientRect();
+            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
+            const screenY = window.screenY || window.screenTop || 0;
+
+            const absoluteX = rect.left + screenX;
+            const absoluteY = rect.top + screenY;
+
+            return { vpX: absoluteX, vpY: absoluteY, boxX: rect.left, boxY: rect.top }
+        }
+
+        //修改local存储位置信息
+        function modifyCoordinates(draggableElement) {
+            const rect = draggableElement.getBoundingClientRect();
+
+            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
+            const screenY = window.screenY || window.screenTop || 0;
+
+            const absoluteX = rect.left + screenX;
+            const absoluteY = rect.top + screenY;
+
+            const x1 = draggableElement.id + ''
+            const key = x1.replace('draggableElement-', '')
+            saveData(key, {
+                vpX: absoluteX,
+                vpY: absoluteY,
+                boxX: rect.left,
+                boxY: rect.top
+            })
+        }
 
 
-        //         draggableElement.style.left = 0
-        //         draggableElement.style.top = 100
+        // 初始化数据
+        function addCoordinates() {
 
-        // }, 1000);
+            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
+            const screenY = window.screenY || window.screenTop || 0;
+
+            let left = 0
+            let top = 100
+
+            const absoluteX = left + screenX;
+            const absoluteY = top + screenY;
+
+            // 修改位置参数
+            saveData(`data-${tabId}`, {
+                vpX: absoluteX,
+                vpY: absoluteY,
+                boxX: left,
+                boxY: top,
+            })
+        }
+        addCoordinates()
+
 
 
 
@@ -211,41 +211,27 @@
 
         //////////////////////////////////////////////////////////////两个盒子之间的线////////////////////////////////////////////////////////////
 
-
-        // const line2 = document.getElementById('line2');
-
-
-
         // 更新线的位置
         function updateLine(k, o) {
-            // const draggableElements = document.querySelectorAll(`.draggableElement:not(#data-${tabId})`);
             const draggableElements = document.querySelectorAll(`.draggableElement`);
 
             for (let j = 0; j < draggableElements.length; j++) {
-
-
-                // const rect1 = locationInformationStorage(draggableElements[0])
                 const rect1 = draggableElements[j].getBoundingClientRect();
-                // console.log(rect1);
-                // const a = locationInformationStorage(`data-${tabId}`, draggableElements[0])
                 const a = locationInformationStorage(k[j], draggableElements[j])
 
 
                 let num = 0
                 for (let i = 0; i < draggableElements.length; i++) {
 
-                    if (j === i) {
+                    if (draggableElements[j].id.replace('draggableElement-','') === k[i]) {
                         continue
                     }
 
                     const draggableElement = draggableElements[i];
 
-                    // const a = draggableElement.getBoundingClientRect();
 
                     const b = locationInformationStorage(k[i], draggableElement)
-                    // console.log(`line-${k[j]}-${num}`);
                     const line = document.getElementById(`line-${k[j]}-${num}`);
-                    // console.log(line);
 
 
                     const centerX_1 = rect1.left + rect1.width / 2;
@@ -260,7 +246,6 @@
                     const distance = Math.sqrt(Math.pow(centerX2 - centerX1, 2) + Math.pow(centerY2 - centerY1, 2));
                     const angle = Math.atan2(centerY2 - centerY1, centerX2 - centerX1);
 
-                    // console.log(distance);
                     line.style.width = distance * 2 + 'px';
                     line.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
                     line.style.left = centerX_1 + 'px';
@@ -271,20 +256,16 @@
                 num = 0
 
             }
-
-
-
-
-
         }
-
-        // 页面加载时更新线的位置
-        // updateLine();
 
         // 监听窗口大小变化，以保持线的正确位置
         window.addEventListener('resize', updateLine);
 
 
+
+
+
+        //////////////////////////////////////////////////////////////节点处理//////////////////////////////////////////////////////////////
 
         // 增加节点
         function addNodes(key) {
@@ -328,91 +309,46 @@
             });
         }
 
-        // 初始化数据
-        function addCoordinates() {
-
-            // const box = document.querySelector(`#draggableElement-data-${tabId}`)
-            // console.log(box);
-
-            // const rect = box.getBoundingClientRect();
-
-            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
-            const screenY = window.screenY || window.screenTop || 0;
-
-            let left = 0
-            let top = 100
-
-            const absoluteX = left + screenX;
-            const absoluteY = top + screenY;
-
-            // 修改位置参数
-            saveData(`data-${tabId}`, {
-                vpX: absoluteX,
-                vpY: absoluteY,
-                // boxX: rect.left,
-                // boxY: rect.top,
-                boxX: left,
-                boxY: top,
-            })
-            // box.style.left = left
-            // box.style.top = top
-        }
-        addCoordinates()
 
 
 
 
 
-
-        ////////////////////////////////////////////////////////////////获取所有的local的key//////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////管理数据//////////////////////////////////////////////////////////////
+        // 这个是定时器
         function criminalProcedure() {
-
             let localStorageKeys = Object.keys(localStorage);
-            // let localkey = localStorageKeys.filter(item => item !== `data-${tabId}`);
-
-
-
-            // 操作参数
+            // 处理数据
             processingData(localStorageKeys)
-
+            //根据local位置更新坐标
             updateCoordinates()
-
         }
 
         //处理数据
         function processingData(k) {
-            const obj = []
-            //创建节点
 
-            //实现拖动
+
             const draggableElements = document.querySelectorAll('.draggableElement');
+            //如何他俩互不相等，说明页面增加了，或者删除，要重新加载方法
             if (draggableElements.length !== k.length) {
-                console.log('123123');
+                console.log('重新加载方法了');
+                //拖动效果重新初始化
                 dragEffect()
+                //节点初始化
                 addNodes(k)
-                addCoordinates()
+
+                // addCoordinates()
             }
 
-
-            //创建盒子
-            // createBox(k.length)
-
-
-
+            //更新线的问题
+            const obj = []
             for (let i = 0; i < k.length; i++) {
                 const element = k[i];
-
                 //读取数据
                 obj.push(loadData(element))
             }
-
             updateLine(k, obj)
-
-
         }
-
-        ////////////////////////////////////////////////////////////////实现跨页面效果/////////////////////////////////////////////////////////////
-
 
         // 根据local位置更新坐标
         function updateCoordinates() {
@@ -420,30 +356,23 @@
             const draggableElements = document.querySelectorAll(`.draggableElement`);
             for (let i = 0; i < draggableElements.length; i++) {
                 const draggableElement = draggableElements[i];
-                const key = k[i];
-                // console.log(loadData(key).boxX);
-                draggableElement.style.left = loadData(key).boxX + loadData(key).vpX - windowCoordinates().x + 'px';
-                draggableElement.style.top = loadData(key).boxY + loadData(key).vpY - windowCoordinates().y + 'px';
 
-                // draggableElement.style.left = windowCoordinates().x -loadData(key).vpX -loadData(key).boxX  + 'px';
-                // draggableElement.style.top = windowCoordinates().y -loadData(key).vpY -loadData(key).boxY  + 'px';
+                for (let j = 0; j < k.length; j++) {
+                    const key = k[j];
+                    
+                    if (draggableElements[j].id.replace('draggableElement-','') !== k[i]) {
+                        continue
+                    }
 
-                // let x = loadData(key).boxX - windowCoordinates().x - loadData(key).vpX + 'px';
-                // let y = loadData(key).boxY - windowCoordinates().y - loadData(key).vpY + 'px';
-                // console.log(key, x, y);
-
-                // draggableElement.style.left = x
-                // draggableElement.style.top = y
-
-                // draggableElement.style.left = loadData(key).boxX - windowCoordinates().x - loadData(key).vpX - + 'px';
-                // draggableElement.style.top = loadData(key).boxY - windowCoordinates().y - loadData(key).vpY - + 'px';
+                    draggableElement.style.left =  loadData(key).vpX - windowCoordinates().winX + 'px';
+                    draggableElement.style.top =  loadData(key).vpY - windowCoordinates().winY + 'px';
+                }
             }
         }
 
-
         // 获取浏览器窗口坐标
         function windowCoordinates() {
-            return { x: window.screenX, y: window.screenY }
+            return { winX: window.screenX, winY: window.screenY }
         }
 
 
