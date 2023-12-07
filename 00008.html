@@ -32,17 +32,18 @@
         ////////////////////////////////////////////////////////////////定时刷新////////////////////////////////////////////////////////////////
         let time
         function timeX() {
-            time = setInterval(criminalProcedure, 100)
+            time = setInterval(criminalProcedure, 10)
         }
         timeX()
 
 
         ////////////////////////////////////////////////////////拖动效果////////////////////////////////////////////////////////////////
         //拖动效果初始化
-        setTimeout(dragEffect, 500)
+        setTimeout(dragEffect, 20)
         function dragEffect() {
             const draggableElements = document.querySelectorAll('.draggableElement');
             let localStorageKeys = Object.keys(localStorage);
+            console.log('xxxx10',draggableElements);
             for (let i = 0; i < draggableElements.length; i++) {
                 const draggableElement = draggableElements[i];
                 let x, y
@@ -50,22 +51,22 @@
                 let isDragging = false;
 
 
+                console.log('xxx1');
                 //实现每次加载，覆盖的效果
-                draggableElement.onmousedown = function (e) {
+                draggableElement.addEventListener('mousedown',function(e){
+                // draggableElement.onmousedown = function (e) {
+                    console.log('xxx2');
                     isDragging = true;
                     offsetX = e.clientX - draggableElement.getBoundingClientRect().left;
                     offsetY = e.clientY - draggableElement.getBoundingClientRect().top;
-                    console.log('手的位置', offsetX, offsetY);
                     draggableElement.style.cursor = 'grabbing';
                     // clearInterval(time)
-                };
+                });
 
                 draggableElement.onmousemove = function (e) {
-                    console.log('yidong');
                     if (!isDragging) return;
                     const x = e.clientX - offsetX;
                     const y = e.clientY - offsetY;
-                    console.log(x, y);
                     draggableElement.style.left = x + 'px';
                     draggableElement.style.top = y + 'px';
                     //修改位置
@@ -73,7 +74,6 @@
                 };
 
                 draggableElement.onmouseup = function (e) {
-                    console.log('释放');
                     isDragging = false;
                     draggableElement.style.cursor = 'grab';
                     updateCoordinates()
@@ -222,7 +222,7 @@
 
                 let num = 0
                 for (let i = 0; i < draggableElements.length; i++) {
-
+                    // console.log(draggableElements[j].id.replace('draggableElement-','') === k[i],   draggableElements[j].id.replace('draggableElement-',''),k[i],draggableElements.length,k.leng);
                     if (draggableElements[j].id.replace('draggableElement-','') === k[i]) {
                         continue
                     }
@@ -231,7 +231,9 @@
 
 
                     const b = locationInformationStorage(k[i], draggableElement)
+                    // console.log('123',`line-${k[j]}-${num}`);
                     const line = document.getElementById(`line-${k[j]}-${num}`);
+                    // console.log('asdf',line);
 
 
                     const centerX_1 = rect1.left + rect1.width / 2;
@@ -268,11 +270,16 @@
         //////////////////////////////////////////////////////////////节点处理//////////////////////////////////////////////////////////////
 
         // 增加节点
+        let ixi = 0
         function addNodes(key) {
             // 判断节点应该有几个
-            let ixi = 0
+            
+            // console.log('@@@',key.length > ixi,key,ixi);
             if (key.length > ixi) {
-                console.log(key);
+                if(ixi !== 0){
+                    deleteNode()
+                }
+                
                 for (let i = 0; i < key.length; i++) {
                     for (let j = 0; j < key.length - 1; j++) {
                         // 增加线的数量
@@ -282,6 +289,8 @@
                         document.body.appendChild(div1);
                     }
                 }
+                // console.log('12345678',key);
+               
                 for (let i = 0; i < key.length; i++) {
                     //增加盒子的数量
                     const div2 = document.createElement('div')
@@ -326,16 +335,15 @@
 
         //处理数据
         function processingData(k) {
-
-
             const draggableElements = document.querySelectorAll('.draggableElement');
             //如何他俩互不相等，说明页面增加了，或者删除，要重新加载方法
             if (draggableElements.length !== k.length) {
-                console.log('重新加载方法了');
+                console.log('重新加载方法了',draggableElements,k);
+                 //节点初始化
+                 addNodes(k)
                 //拖动效果重新初始化
                 dragEffect()
-                //节点初始化
-                addNodes(k)
+               
 
                 // addCoordinates()
             }
