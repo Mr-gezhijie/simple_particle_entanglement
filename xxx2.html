@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connected Elements with Random Positions</title>
+    <style>
+        .draggable {
+            width: 100px;
+            height: 100px;
+            background-color: lightblue;
+            position: absolute;
+        }
+
+        .line {
+            position: absolute;
+            background-color: black;
+            height: 2px;
+            width: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="draggable" id="draggable1">1</div>
+    <div class="draggable" id="draggable2">2</div>
+    <div class="line" id="line"></div>
+    <div class="line" id="line2"></div>
+
+    <script>
+
+
+
+        // 拖动效果
+        const draggable1 = document.getElementById('draggable1');
+
+        function daga(draggableElement) {
+
+
+            let offsetX, offsetY;
+            let isDragging = false;
+
+            draggableElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - draggableElement.getBoundingClientRect().left;
+                offsetY = e.clientY - draggableElement.getBoundingClientRect().top;
+                draggableElement.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const x = e.clientX - offsetX;
+                const y = e.clientY - offsetY;
+                updateLine();
+                draggableElement.style.left = x + 'px';
+                draggableElement.style.top = y + 'px';
+                saveData({ x: x, y: y })
+
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+
+                draggableElement.style.cursor = 'grab';
+            });
+        }
+        const draggable2 = document.getElementById('draggable2');
+        daga(draggable1)
+        daga(draggable2)
+
+
+
+
+
+
+
+
+        const line = document.getElementById('line');
+        const line2 = document.getElementById('line2');
+
+        // 更新线的位置
+        function updateLine() {
+            const rect1 = draggable1.getBoundingClientRect();
+            const rect2 = draggable2.getBoundingClientRect();
+
+            const centerX1 = rect1.left + rect1.width / 2;
+            const centerY1 = rect1.top + rect1.height / 2;
+
+            const centerX2 = rect2.left + rect2.width / 2;
+            const centerY2 = rect2.top + rect2.height / 2;
+
+            const distance = Math.sqrt(Math.pow(centerX2 - centerX1, 2) + Math.pow(centerY2 - centerY1, 2));
+            const angle = Math.atan2(centerY2 - centerY1, centerX2 - centerX1);
+
+            line.style.width = distance*2 + 'px';
+            line.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
+            line.style.left = centerX1 + 'px';
+            line.style.top = centerY1 + 'px';
+
+            line2.style.width = distance*2 + 'px';
+            line2.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
+            line2.style.left = centerX2 + 'px';
+            line2.style.top = centerY2 + 'px';
+
+        }
+
+        // 页面加载时更新线的位置
+        updateLine();
+        // 100，390
+        // 50，260  -130，
+
+        // 监听窗口大小变化，以保持线的正确位置
+        window.addEventListener('resize', updateLine);
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>

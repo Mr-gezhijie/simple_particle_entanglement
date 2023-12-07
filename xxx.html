@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connected Elements with Random Positions</title>
+    <style>
+        .draggable {
+            width: 100px;
+            height: 100px;
+            background-color: lightblue;
+            position: absolute;
+        }
+
+        .line {
+            position: absolute;
+            background-color: black;
+            height: 2px;
+            width: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="draggable" id="draggable1"></div>
+    <div class="draggable" id="draggable2"></div>
+    <div class="line" id="line"></div>
+
+    <script>
+        const draggable1 = document.getElementById('draggable1');
+        const draggable2 = document.getElementById('draggable2');
+        const line = document.getElementById('line');
+
+        // 设置盒子的随机位置
+        draggable1.style.left = Math.random() * (window.innerWidth - 100) + 'px';
+        draggable1.style.top = Math.random() * (window.innerHeight - 100) + 'px';
+
+        draggable2.style.left = Math.random() * (window.innerWidth - 100) + 'px';
+        draggable2.style.top = Math.random() * (window.innerHeight - 100) + 'px';
+
+        // 更新线的位置
+        function updateLine() {
+            const rect1 = draggable1.getBoundingClientRect();
+            const rect2 = draggable2.getBoundingClientRect();
+
+            const centerX1 = rect1.left + rect1.width / 2;
+            const centerY1 = rect1.top + rect1.height / 2;
+
+            const centerX2 = rect2.left + rect2.width / 2;
+            const centerY2 = rect2.top + rect2.height / 2;
+
+            const distance = Math.sqrt(Math.pow(centerX2 - centerX1, 2) + Math.pow(centerY2 - centerY1, 2));
+
+            const angle = Math.atan2(centerY2 - centerY1, centerX2 - centerX1);
+
+            const lineX = centerX1;
+            const lineY = centerY1;
+
+            line.style.width = distance + 'px';
+            line.style.transform = `translate(${lineX}px, ${lineY}px) rotate(${angle}rad)`;
+        }
+
+        // 页面加载时更新线的位置
+        updateLine();
+
+        // 监听窗口大小变化，以保持线的正确位置
+        window.addEventListener('resize', updateLine);
+    </script>
+</body>
+
+</html>
