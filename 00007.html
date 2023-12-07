@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draggable Element</title>
+    <style>
+        #draggableElement {
+            width: 100px;
+            height: 100px;
+            background-color: lightblue;
+            position: fixed;
+            cursor: grab;
+        }
+
+        .line {
+            position: fixed;
+            position: absolute;
+            background-color: black;
+            height: 2px;
+            width: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="draggableElement">Drag me!</div>
+    <!-- <div class="line" id="line"></div> -->
+
+    <script>
+
+        //////////////////////////////////////////////////////////// 拖动效果////////////////////////////////////////////////////////////////
+        const draggableElement = document.getElementById('draggableElement');
+        let x, y
+        let offsetX, offsetY;
+        let isDragging = false;
+
+        draggableElement.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - draggableElement.getBoundingClientRect().left;
+            offsetY = e.clientY - draggableElement.getBoundingClientRect().top;
+            draggableElement.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const x = e.clientX - offsetX;
+            const y = e.clientY - offsetY;
+            draggableElement.style.left = x + 'px';
+            draggableElement.style.top = y + 'px';
+
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            draggableElement.style.cursor = 'grab';
+        });
+
+
+        //////////////////////////////////////////////////////////////获取盒子在屏幕视口的位置////////////////////////////////////////////////////////////
+        function xx(box) {
+            const rect = box.getBoundingClientRect();
+
+            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
+            const screenY = window.screenY || window.screenTop || 0;
+
+            const absoluteX = rect.left + screenX;
+            const absoluteY = rect.top + screenY;
+
+            // console.log('盒子在屏幕中的位置：');
+            // console.log('X 坐标：', absoluteX);
+            // console.log('Y 坐标：', absoluteY);
+
+            saveData({
+                vpX: absoluteX,
+                vpY: absoluteY,
+                boxX: rect.left,
+                boxY: rect.top
+            })
+            return { vpX: absoluteX, vpY: absoluteY }
+        }
+
+
+
+
+        ////////////////////////////////////////////////////////////// 页面数据存储////////////////////////////////////////////////////////////
+        // function labelDataStorage() {
+        // 生成一个唯一的标识符
+        function generateUniqueId() {
+            return 'id-' + Math.random().toString(36).substr(2, 16);
+        }
+
+        // 获取当前标签页的标识符
+        let tabId = sessionStorage.getItem('tabId');
+
+        if (!tabId) {
+            // 如果当前标签页没有标识符，生成一个并保存到 sessionStorage
+            tabId = generateUniqueId();
+            sessionStorage.setItem('tabId', tabId);
+        }
+
+        // 存储数据到 localStorage，并添加标识符
+        function saveData(data) {
+            const key = `data-${tabId}`;
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        // 读取数据
+        function loadData(key) {
+            // const key = `data-${keyx}`;
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        }
+
+        // 删除当前标签页的数据
+        function clearData() {
+            const key = `data-${tabId}`;
+            localStorage.removeItem(key);
+        }
+
+        // 在页面关闭前清除数据
+        window.addEventListener('beforeunload', function () {
+            clearData();
+        });
+
+        // 初始化数据
+        saveData({ x: 0, y: 0 });
+
+
+
+
+
+
+
+
+        //////////////////////////////////////////////////////////////两个盒子之间的线////////////////////////////////////////////////////////////
+
+
+        // const line2 = document.getElementById('line2');
+
+
+
+        // 更新线的位置
+        function updateLine(a, o) {
+            const rect1 = draggableElement.getBoundingClientRect();
+            for (let i = 0; i < o.length; i++) {
+                const b = o[i];
+                const line = document.getElementById(`line${i}`);
+
+
+                const centerX_1 = rect1.left + rect1.width / 2;
+                const centerY_1 = rect1.top + rect1.height / 2;
+                const centerX1 = a.vpX + rect1.width / 2;
+                const centerY1 = a.vpY + rect1.height / 2;
+
+
+                const centerX2 = b.vpX + rect1.width / 2;
+                const centerY2 = b.vpY + rect1.width / 2;
+
+                const distance = Math.sqrt(Math.pow(centerX2 - centerX1, 2) + Math.pow(centerY2 - centerY1, 2));
+                const angle = Math.atan2(centerY2 - centerY1, centerX2 - centerX1);
+
+                line.style.width = distance * 2 + 'px';
+                line.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
+                line.style.left = centerX_1 + 'px';
+                line.style.top = centerY_1 + 'px';
+
+
+
+            }
+
+
+
+
+
+        }
+
+        // 页面加载时更新线的位置
+        // updateLine();
+
+        // 监听窗口大小变化，以保持线的正确位置
+        window.addEventListener('resize', updateLine);
+
+
+
+        // 增加节点
+        let ixi = 0
+        function addNodes(num) {
+            // 判断节点应该有几个
+            if (num > ixi) {
+
+
+                for (let i = 0; i < num; i++) {
+                    const div = document.createElement('div')
+                    div.classList.add('line')
+                    div.id = `line${i}`
+                    let a = document.body.appendChild(div);
+                }
+                ixi = num
+            } else if (num < ixi) {
+                deleteNode()
+                ixi = 0
+            }
+        }
+
+        //删除节点
+        function deleteNode() {
+            const lines = document.querySelectorAll('.line');
+            lines.forEach(line => {
+                document.body.removeChild(line);
+            });
+        }
+
+
+
+
+
+
+
+        ////////////////////////////////////////////////////////////////获取所有的local的key//////////////////////////////////////////////////////////////
+        function criminalProcedure() {
+
+
+
+
+            const vx = xx(draggableElement)
+
+            let localStorageKeys = Object.keys(localStorage);
+            let localkey = localStorageKeys.filter(item => item !== `data-${tabId}`);
+
+
+
+            // 操作参数
+            processingData(vx, localkey)
+
+
+
+        }
+
+        //处理数据
+        function processingData(vx, k) {
+            const obj = []
+            //创建节点
+            addNodes(k.length)
+
+            for (let i = 0; i < k.length; i++) {
+                const element = k[i];
+
+                //读取数据
+                obj.push(loadData(element))
+            }
+
+            updateLine(vx, obj)
+
+
+        }
+
+
+        setInterval(criminalProcedure, 1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>
