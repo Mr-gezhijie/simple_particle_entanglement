@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draggable Element</title>
+    <style>
+        .draggableElement {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            position: fixed;
+            cursor: grab;
+        }
+
+        .line {
+            position: fixed;
+            background-color: white;
+            height: 2px;
+            width: 0;
+        }
+
+        body {
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div id="draggableElement">Drag me!</div> -->
+    <!-- <div class="line" id="line"></div> -->
+
+    <script>
+
+        ////////////////////////////////////////////////////////////////控制区////////////////////////////////////////////////////////////////
+        // 流程刷新速度
+        setInterval(criminalProcedure, 1)
+
+        // 打开网页，初始的位置信息
+        const boxPositionInitialX = 0
+        const boxPositionInitialY = 100
+
+        ////////////////////////////////////////////////////////拖动效果////////////////////////////////////////////////////////////////
+        //拖动效果初始化
+        function dragEffect() {
+            //因为创建了节点，所以需要重新获取
+            const draggableElements = document.querySelectorAll('.draggableElement');
+
+            let localStorageKeys = Object.keys(localStorage);
+            //初始化所有的盒子
+            for (let i = 0; i < draggableElements.length; i++) {
+                const draggableElement = draggableElements[i];
+                let x, y
+                let offsetX, offsetY;
+                let isDragging = false;
+
+                //实现每次加载，覆盖的效果
+                draggableElement.onmousedown = function (e) {
+                    isDragging = true;
+                    offsetX = e.clientX - draggableElement.getBoundingClientRect().left;
+                    offsetY = e.clientY - draggableElement.getBoundingClientRect().top;
+                    draggableElement.style.cursor = 'grabbing';
+                };
+
+                draggableElement.onmousemove = function (e) {
+                    if (!isDragging) return;
+                    const x = e.clientX - offsetX;
+                    const y = e.clientY - offsetY;
+                    draggableElement.style.left = x + 'px';
+                    draggableElement.style.top = y + 'px';
+                    //修改位置
+                    modifyCoordinates(draggableElement)
+                };
+
+                draggableElement.onmouseup = function (e) {
+                    isDragging = false;
+                    draggableElement.style.cursor = 'grab';
+                    updateCoordinates()
+                };
+            }
+
+        }
+
+
+
+        ////////////////////////////////////////////////////////////// 页面数据存储////////////////////////////////////////////////////////////
+        // 生成一个唯一的标识符
+        function generateUniqueId() {
+            return 'id-' + Math.random().toString(36).substr(2, 16);
+        }
+
+        // 获取当前标签页的标识符
+        let tabId = sessionStorage.getItem('tabId');
+
+        if (!tabId) {
+            // 如果当前标签页没有标识符，生成一个并保存到 sessionStorage
+            tabId = generateUniqueId();
+            sessionStorage.setItem('tabId', tabId);
+        }
+        //保存和修改数据
+        function saveData(tabIdx, data) {
+            if (!tabIdx) {   //key会空，不知道哪里的，先这样吧
+                return
+            }
+            const key = `${tabIdx}`;
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        // 读取数据
+        function loadData(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        }
+
+        // 删除当前标签页的数据
+        function clearData() {
+            const key = `data-${tabId}`;
+            localStorage.removeItem(key);
+        }
+
+        // 在页面关闭前清除数据
+        window.addEventListener('beforeunload', function () {
+            clearData();
+        });
+
+
+        //////////////////////////////////////////////////////////////位置信息////////////////////////////////////////////////////////////
+
+        // 获取位置信息
+        function locationInformationStorage(k, rect) {
+            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
+            const screenY = window.screenY || window.screenTop || 0;
+
+            const absoluteX = rect.left + screenX;
+            const absoluteY = rect.top + screenY;
+
+            return { vpX: absoluteX, vpY: absoluteY, boxX: rect.left, boxY: rect.top }
+        }
+
+        //修改local存储位置信息
+        function modifyCoordinates(draggableElement) {
+            const rect = draggableElement.getBoundingClientRect();
+
+            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
+            const screenY = window.screenY || window.screenTop || 0;
+
+            const absoluteX = rect.left + screenX;
+            const absoluteY = rect.top + screenY;
+
+            const x1 = draggableElement.id + ''
+            const key = x1.replace('draggableElement-', '')
+            saveData(key, {
+                vpX: absoluteX,
+                vpY: absoluteY,
+                boxX: rect.left,
+                boxY: rect.top
+            })
+        }
+
+        // 根据local位置更新坐标
+        function updateCoordinates() {
+            let k = Object.keys(localStorage);
+            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
+            const screenY = window.screenY || window.screenTop || 0;
+
+            const draggableElements = document.querySelectorAll(`.draggableElement`);
+            for (let i = 0; i < draggableElements.length; i++) {
+                const draggableElement = draggableElements[i];
+                for (let j = 0; j < k.length; j++) {
+                    const key = k[j];
+                    if (draggableElements[j].id.replace('draggableElement-', '') !== k[i]) {
+                        continue
+                    }
+                    draggableElement.style.left = loadData(key).vpX - screenX + 'px';
+                    draggableElement.style.top = loadData(key).vpY - screenY + 'px';
+                }
+            }
+        }
+
+        // 初始化数据
+        function addCoordinates() {
+            const screenX = window.screenX || window.screenLeft || 0; // 兼容不同浏览器
+            const screenY = window.screenY || window.screenTop || 0;
+
+            let left = boxPositionInitialX
+            let top = boxPositionInitialY
+
+            const absoluteX = left + screenX;
+            const absoluteY = top + screenY;
+
+            // 修改位置参数
+            saveData(`data-${tabId}`, {
+                vpX: absoluteX,
+                vpY: absoluteY,
+                boxX: left,
+                boxY: top,
+            })
+        }
+        addCoordinates()
+
+        //////////////////////////////////////////////////////////////两个盒子之间的线////////////////////////////////////////////////////////////
+
+        // 更新线的位置
+        function updateLine(k) {
+            //因为创建了节点，所以需要重新获取
+            const draggableElements = document.querySelectorAll('.draggableElement');
+
+            // 处理每个页面线的位置
+            // 处理每个页面循环
+            for (let j = 0; j < draggableElements.length; j++) {
+                //获取页面坐标
+                const rect1 = draggableElements[j].getBoundingClientRect();
+                // a为主页面位置信息
+                const a = locationInformationStorage(k[j], rect1)
+
+                // num为了处理，ab是否一样的，主要是获取线的id用的
+                let num = 0
+                for (let i = 0; i < draggableElements.length; i++) {
+                    // 判断 盒子和地址是否匹配，如果匹配就跳出，因为a是主盒子，b是副盒子，ab两个盒子之间进行线的位置计算
+                    // 盒子和线的计算方式是：n-1*n,3-1*3=6,这个就是排除计算自身和自身的线
+                    if (draggableElements[j].id.replace('draggableElement-', '') === k[i]) {
+                        continue
+                    }
+
+                    const draggableElement = draggableElements[i];
+                    // b为副页面位置信息
+                    const b = locationInformationStorage(k[i], draggableElement.getBoundingClientRect())
+                    // 获取到，主盒子的，链接剩下盒子的，线
+                    const line = document.getElementById(`line-${k[j]}-${num}`);
+                    if(!line){
+                        // 解决报错日志
+                        return
+                    }
+
+                    const centerX_1 = rect1.left + rect1.width / 2;
+                    const centerY_1 = rect1.top + rect1.height / 2;
+
+                    const centerX1 = a.vpX + rect1.width / 2;
+                    const centerY1 = a.vpY + rect1.height / 2;
+                    const centerX2 = b.vpX + rect1.width / 2;
+                    const centerY2 = b.vpY + rect1.width / 2;
+
+                    //计算长度和角度
+                    const distance = Math.sqrt(Math.pow(centerX2 - centerX1, 2) + Math.pow(centerY2 - centerY1, 2));
+                    const angle = Math.atan2(centerY2 - centerY1, centerX2 - centerX1);
+
+                    line.style.width = distance * 2 + 'px';
+                    line.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
+                    line.style.left = centerX_1 + 'px';
+                    line.style.top = centerY_1 + 'px';
+                    num++
+                }
+                //每次循环完后重置
+                num = 0
+            }
+        }
+
+        // 监听窗口大小变化，以保持线的正确位置
+        window.addEventListener('resize', updateLine);
+
+
+        //////////////////////////////////////////////////////////////节点处理//////////////////////////////////////////////////////////////
+        // 增加节点
+        let ixi = 0
+        function addNodes(key) {
+            // 判断节点应该有几个
+            //如果local存储的，大于现在所有的盒子，说明增加了网页
+            if (key.length > ixi) {
+                // 主要解决，初始化的时候就删除，很不礼貌
+                if (ixi !== 0) {
+                    deleteNode()
+                }
+
+                for (let i = 0; i < key.length; i++) {
+                    for (let j = 0; j < key.length - 1; j++) {
+                        // 增加线的数量
+                        const div1 = document.createElement('div')
+                        div1.classList.add('line')
+                        div1.id = `line-${key[i]}-${j}`
+                        document.body.appendChild(div1);
+                    }
+                }
+
+                for (let i = 0; i < key.length; i++) {
+                    //增加盒子的数量
+                    const div2 = document.createElement('div')
+                    div2.classList.add('draggableElement')
+                    div2.id = `draggableElement-${key[i]}`
+                    document.body.appendChild(div2);
+                }
+                //说明现在有的盒子数量
+                ixi = key.length
+            } else if (key.length < ixi) {  //这里解决了删除的问题，但是我不知道删除了那个，其实也可以知道，但是麻烦，直接全删了算了
+                deleteNode()
+                ixi = 0
+            }
+        }
+
+        //删除节点
+        function deleteNode() {
+            //删除线
+            const lines = document.querySelectorAll('.line');
+            lines.forEach(line => {
+                document.body.removeChild(line);
+            });
+            //删除盒子
+            const draggableElements = document.querySelectorAll('.draggableElement');
+            draggableElements.forEach(draggableElement => {
+                document.body.removeChild(draggableElement);
+            });
+        }
+
+
+
+        ////////////////////////////////////////////////////////////////核心要素//////////////////////////////////////////////////////////////
+        // 这个是定时器  每次定时处理的数据
+        function criminalProcedure() {
+            // 获取所有的local存储key
+            let k = Object.keys(localStorage);
+            const draggableElements = document.querySelectorAll('.draggableElement');
+
+            //如何他俩互不相等，说明页面增加了，或者删除，要重新加载方法
+            if (draggableElements.length !== k.length) {
+                //节点初始化 返回false说明还没有准备好
+                addNodes(k)
+                //拖动效果重新初始化
+                dragEffect()
+            }
+
+            //更新线
+            updateLine(k)
+            //根据local位置更新坐标
+            updateCoordinates()
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>
